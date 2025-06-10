@@ -6,6 +6,7 @@ import time
 import shutil
 import traceback
 from typing import Awaitable, Dict, List, Any
+from gpt_researcher.config.variables.base import BaseConfig
 from fastapi.responses import JSONResponse, FileResponse
 from gpt_researcher.document.document import DocumentLoader
 from gpt_researcher import GPTResearcher
@@ -129,6 +130,7 @@ async def handle_start_command(websocket, data: str, manager):
         headers,
         report_source,
         query_domains,
+        config,
     ) = extract_command_data(json_data)
 
     if not task or not report_type:
@@ -157,6 +159,7 @@ async def handle_start_command(websocket, data: str, manager):
         websocket,
         headers,
         query_domains,
+        config,
     )
     report = str(report)
     file_paths = await generate_report_files(report, sanitized_filename)
@@ -314,4 +317,15 @@ def extract_command_data(json_data: Dict) -> tuple:
         json_data.get("headers", {}),
         json_data.get("report_source"),
         json_data.get("query_domains", []),
+        extract_config(json_data),
     )
+
+
+def extract_config(json_data: Dict) -> Dict[str, Any]:
+    config = json_data.get("config", {}).copy()
+    for key in BaseConfig.__annotations__.keys():
+        if key in json_data:
+            config[key] = json_data[key]
+        elif key.lower() in json_data:
+            config[key] = json_data[key.lower()]
+    return config

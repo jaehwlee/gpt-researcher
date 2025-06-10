@@ -50,6 +50,7 @@ class ResearchRequest(BaseModel):
     repo_name: str
     branch_name: str
     generate_in_background: bool = True
+    config: dict | None = None
 
 
 class ConfigRequest(BaseModel):
@@ -133,6 +134,7 @@ async def write_report(research_request: ResearchRequest, research_id: str = Non
         headers=research_request.headers,
         query_domains=[],
         config_path="",
+        config_dict=research_request.config,
         return_researcher=True
     )
 

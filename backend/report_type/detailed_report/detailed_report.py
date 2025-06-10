@@ -20,6 +20,7 @@ class DetailedReport:
         subtopics: List[Dict] = [],
         headers: Optional[Dict] = None,
         complement_source_urls: bool = False,
+        config=None,
     ):
         self.query = query
         self.report_type = report_type
@@ -28,6 +29,7 @@ class DetailedReport:
         self.document_urls = document_urls
         self.query_domains = query_domains
         self.config_path = config_path
+        self.config = config
         self.tone = tone
         self.websocket = websocket
         self.subtopics = subtopics
@@ -42,6 +44,7 @@ class DetailedReport:
             source_urls=self.source_urls,
             document_urls=self.document_urls,
             config_path=self.config_path,
+            config=self.config,
             tone=self.tone,
             websocket=self.websocket,
             headers=self.headers,
@@ -107,7 +110,9 @@ class DetailedReport:
             role=self.gpt_researcher.role,
             tone=self.tone,
             complement_source_urls=self.complement_source_urls,
-            source_urls=self.source_urls
+            source_urls=self.source_urls,
+            config_path=self.config_path,
+            config=self.config
         )
 
         subtopic_assistant.context = list(set(self.global_context))
