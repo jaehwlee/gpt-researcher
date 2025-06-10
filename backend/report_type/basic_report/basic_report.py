@@ -14,9 +14,10 @@ class BasicReport:
         source_urls,
         document_urls,
         tone: Any,
-        config_path: str,
+        config_path: str | None,
         websocket: WebSocket,
-        headers=None
+        headers=None,
+        config=None
     ):
         self.query = query
         self.query_domains = query_domains
@@ -26,6 +27,7 @@ class BasicReport:
         self.document_urls = document_urls
         self.tone = tone
         self.config_path = config_path
+        self.config = config
         self.websocket = websocket
         self.headers = headers or {}
 
@@ -39,6 +41,7 @@ class BasicReport:
             document_urls=self.document_urls,
             tone=self.tone,
             config_path=self.config_path,
+            config=self.config,
             websocket=self.websocket,
             headers=self.headers
         )

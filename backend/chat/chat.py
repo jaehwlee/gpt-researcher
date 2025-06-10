@@ -16,13 +16,14 @@ class ChatAgentWithMemory:
     def __init__(
         self,
         report: str,
-        config_path,
-        headers,
-        vector_store = None
+        config_path=None,
+        headers=None,
+        vector_store=None,
+        config=None
     ):
         self.report = report
         self.headers = headers
-        self.config = Config(config_path)
+        self.config = Config(config_path, config)
         self.vector_store = vector_store
         self.graph = self.create_agent()
 

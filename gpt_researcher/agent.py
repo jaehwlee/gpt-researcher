@@ -43,6 +43,7 @@ class GPTResearcher:
         vector_store=None,
         vector_store_filter=None,
         config_path=None,
+        config: dict | None = None,
         websocket=None,
         agent=None,
         role=None,
@@ -58,7 +59,7 @@ class GPTResearcher:
     ):
         self.query = query
         self.report_type = report_type
-        self.cfg = Config(config_path)
+        self.cfg = Config(config_path, config)
         self.cfg.set_verbose(verbose)
         self.llm = GenericLLMProvider(self.cfg)
         self.report_source = report_source if report_source else getattr(self.cfg, 'report_source', None)

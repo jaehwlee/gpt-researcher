@@ -12,13 +12,27 @@ class Config:
 
     CONFIG_DIR = os.path.join(os.path.dirname(__file__), "variables")
 
-    def __init__(self, config_path: str | None = None):
-        """Initialize the config class."""
+    def __init__(self, config_path: str | None = None, config_dict: Dict[str, Any] | None = None):
+        """Initialize the config class.
+
+        Parameters
+        ----------
+        config_path: str | None
+            Optional path to a JSON configuration file. If ``None`` the
+            default configuration is used.
+        config_dict: Dict[str, Any] | None
+            Dictionary of configuration values that override the defaults.
+        """
         self.config_path = config_path
         self.llm_kwargs: Dict[str, Any] = {}
         self.embedding_kwargs: Dict[str, Any] = {}
 
         config_to_use = self.load_config(config_path)
+        if config_dict:
+            normalized = {k.upper(): v for k, v in config_dict.items()}
+            for key in DEFAULT_CONFIG:
+                if key in normalized and normalized[key] is not None:
+                    config_to_use[key] = normalized[key]
         self._set_attributes(config_to_use)
         self._set_embedding_attributes()
         self._set_llm_attributes()
