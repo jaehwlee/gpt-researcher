@@ -8,13 +8,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
+from starlette.responses import EventSourceResponse
+import asyncio
 from pydantic import BaseModel
 
 from backend.server.websocket_manager import WebSocketManager
 from backend.server.server_utils import (
     get_config_dict, sanitize_filename,
     update_environment_variables, handle_file_upload, handle_file_deletion,
-    execute_multi_agents, handle_websocket_communication
+    execute_multi_agents, handle_websocket_communication, CustomLogsHandler
 )
 
 from backend.server.websocket_manager import run_agent
@@ -195,6 +197,51 @@ async def upload_file(file: UploadFile = File(...)):
 @app.delete("/files/{filename}")
 async def delete_file(filename: str):
     return await handle_file_deletion(filename, DOC_PATH)
+
+
+@app.get("/sse")
+async def sse_endpoint(
+    request: Request,
+    task: str,
+    report_type: str,
+    report_source: str,
+    tone: str,
+):
+    queue: asyncio.Queue = asyncio.Queue()
+
+    async def run_task():
+        logs_handler = CustomLogsHandler(websocket=None, task=task, queue=queue)
+        await run_agent(
+            task=task,
+            report_type=report_type,
+            report_source=report_source,
+            source_urls=[],
+            document_urls=[],
+            tone=Tone[tone],
+            websocket=None,
+            headers=None,
+            query_domains=[],
+            config_path="",
+            config_dict=None,
+            logs_handler=logs_handler,
+        )
+        await queue.put(None)
+
+    asyncio.create_task(run_task())
+
+    async def event_generator():
+        while True:
+            if await request.is_disconnected():
+                break
+            message = await queue.get()
+            if message is None:
+                break
+            yield {
+                "event": "message",
+                "data": message,
+            }
+
+    return EventSourceResponse(event_generator())
 
 
 @app.websocket("/ws")

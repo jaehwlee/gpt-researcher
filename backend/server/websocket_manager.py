@@ -117,10 +117,12 @@ async def run_agent(
     config_path="",
     config_dict=None,
     return_researcher=False,
+    logs_handler: CustomLogsHandler | None = None,
 ):
-    """Run the agent."""    
-    # Create logs handler for this research task
-    logs_handler = CustomLogsHandler(websocket, task)
+    """Run the agent."""
+    # Create logs handler for this research task if not provided
+    if logs_handler is None:
+        logs_handler = CustomLogsHandler(websocket=websocket, task=task)
 
     # Initialize researcher based on report type
     if report_type == "multi_agents":
