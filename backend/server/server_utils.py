@@ -5,7 +5,7 @@ import re
 import time
 import shutil
 import traceback
-from typing import Awaitable, Dict, List, Any
+from typing import Awaitable, Dict, List, Any, Optional
 from gpt_researcher.config.variables.base import BaseConfig
 from fastapi.responses import JSONResponse, FileResponse
 from gpt_researcher.document.document import DocumentLoader
@@ -21,9 +21,10 @@ logger = logging.getLogger(__name__)
 
 class CustomLogsHandler:
     """Custom handler to capture streaming logs from the research process"""
-    def __init__(self, websocket, task: str):
+    def __init__(self, websocket=None, task: str = "", queue: Optional[asyncio.Queue] = None):
         self.logs = []
         self.websocket = websocket
+        self.queue = queue
         sanitized_filename = sanitize_filename(f"task_{int(time.time())}_{task}")
         self.log_file = os.path.join("outputs", f"{sanitized_filename}.json")
         self.timestamp = datetime.now().isoformat()
@@ -47,6 +48,9 @@ class CustomLogsHandler:
         # Send to websocket for real-time display
         if self.websocket:
             await self.websocket.send_json(data)
+        # Forward to SSE queue if provided
+        if self.queue is not None:
+            await self.queue.put(json.dumps(data))
             
         # Read current log file
         with open(self.log_file, 'r') as f:
